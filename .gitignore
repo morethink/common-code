@@ -1,0 +1,11 @@
+**/target/
+**/.idea/
+java/.settings
+java/.gradle
+**.iml
+**.DS_Store
+**.log
+**/node_modules/
+**/**.pyc
+/awesome/
+/cnn_captcha/
