@@ -9,3 +9,4 @@ java/.gradle
 **/**.pyc
 /awesome/
 /cnn_captcha/
+python3/drive/upload.py

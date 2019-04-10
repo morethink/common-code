@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/bash
 set -e
 print()
 {
@@ -11,7 +11,7 @@ then
 fi
 print "git commit message is $message"
 
-git add . 
-git commit -m "$message" 
+git add .
+git commit -m "$message"
 git push
 print "git push success"
