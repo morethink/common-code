@@ -1,8 +1,10 @@
+# -*- coding: UTF-8 -*-
+import re
 import time
 import pdfkit
 import requests
-import urllib3
 from bs4 import BeautifulSoup
+import urllib3
 
 urllib3.disable_warnings()
 
@@ -19,14 +21,47 @@ def get_soup(target_url):
     flag = True
     while flag:
         try:
-            resp = requests.get(target_url, proxies=proxies, headers=headers, verify=False, allow_redirects=False,
-                                timeout=1)
+            resp = requests.get(target_url, proxies=proxies, headers=headers, verify=False)
+            # if resp.status_code != 502:
             flag = False
+            print(resp.text)
         except Exception as e:
             print(e)
 
     soup = BeautifulSoup(resp.text, 'html.parser')
     return soup
+
+
+# 使用 阿布云代理
+# def get_soup(target_url):
+#     proxy_host = "http-dyn.abuyun.com"
+#     proxy_port = "9020"
+#     proxy_user = "HKQL6V46321071VD"
+#     proxy_pass = "1759D9C2F6DE34B3"
+#     proxy_meta = "http://%(user)s:%(pass)s@%(host)s:%(port)s" % {
+#         "host": proxy_host,
+#         "port": proxy_port,
+#         "user": proxy_user,
+#         "pass": proxy_pass,
+#     }
+#
+#     proxies = {
+#         "http": proxy_meta,
+#         "https": proxy_meta,
+#     }
+#     headers = {'User-Agent':
+#                    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36'}
+#     flag = True
+#     while flag:
+#         try:
+#             resp = requests.get(target_url, proxies=proxies, headers=headers)
+#             flag = False
+#         except Exception as e:
+#             print(e)
+#             time.sleep(0.4)
+#
+#     soup = BeautifulSoup(resp.text, 'html.parser')
+#     return soup
 
 
 def get_toc(url):
@@ -44,13 +79,23 @@ def download_html(url, depth):
         depth = '1'
     elif int(depth) >= 2:
         depth = '2'
-    title = soup.select(".x-content h4")[0]
-    new_title = BeautifulSoup('<h' + depth + '>' + title.string + '</h' + depth + '>', 'html.parser')
+    title = soup.select("#x-content h4")[0]
+    new_a = soup.new_tag('a', href=url)
+    new_a.string = title.string
+    new_title = soup.new_tag('h' + depth)
+    new_title.append(new_a)
     print(new_title)
     # 加载图片
     images = soup.find_all('img')
     for x in images:
-        x['src'] = x['data-src']
+        x['src'] = 'https://static.liaoxuefeng.com/' + x['data-src']
+    # 将bilibili iframe 视频更换为链接地址
+    iframes = soup.find_all('iframe', src=re.compile("bilibili"))
+    for x in iframes:
+        x['src'] = "http:" + x['src']
+        a_tag = soup.new_tag("a", href=x['src'])
+        a_tag.string = "vide play:" + x['src']
+        x.replace_with(a_tag)
 
     div_content = soup.find('div', class_='x-wiki-content')
     return new_title, div_content
@@ -58,7 +103,7 @@ def download_html(url, depth):
 
 def convert_pdf(template):
     html_file = "python-tutorial-pdf.html"
-    with open(html_file, mode="w", encoding="utf8") as code:
+    with open(html_file, mode="w") as code:
         code.write(str(template))
     pdfkit.from_file(html_file, 'python-tutorial-pdf.pdf')
 

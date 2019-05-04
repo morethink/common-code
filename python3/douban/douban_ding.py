@@ -16,6 +16,10 @@ urllib3.disable_warnings()
 
 
 # 下载验证码图片
+class dd(object):
+    pass
+
+
 def download_captcha(captcha_url, agent):
     # findall返回的是一个列表
     captcha_name = re.findall("id=(.*?):", captcha_url)

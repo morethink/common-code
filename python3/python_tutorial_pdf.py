@@ -1,4 +1,5 @@
 # -*- coding: UTF-8 -*-
+import re
 import time
 import pdfkit
 import requests
@@ -9,8 +10,8 @@ from bs4 import BeautifulSoup
 def get_soup(target_url):
     proxy_host = "http-dyn.abuyun.com"
     proxy_port = "9020"
-    proxy_user = "H69007VYE59J98KD"
-    proxy_pass = "F0F128949557E220"
+    proxy_user = "HKQL6V46321071VD"
+    proxy_pass = "1759D9C2F6DE34B3"
     proxy_meta = "http://%(user)s:%(pass)s@%(host)s:%(port)s" % {
         "host": proxy_host,
         "port": proxy_port,
@@ -52,13 +53,23 @@ def download_html(url, depth):
         depth = '1'
     elif int(depth) >= 2:
         depth = '2'
-    title = soup.select(".x-content h4")[0]
-    new_title = BeautifulSoup('<h' + depth + '>' + title.string + '</h' + depth + '>', 'html.parser')
+    title = soup.select("#x-content h4")[0]
+    new_a = soup.new_tag('a', href=url)
+    new_a.string = title.string
+    new_title = soup.new_tag('h' + depth)
+    new_title.append(new_a)
     print(new_title)
     # 加载图片
     images = soup.find_all('img')
     for x in images:
-        x['src'] = x['data-src']
+        x['src'] = 'https://static.liaoxuefeng.com/' + x['data-src']
+    # 将bilibili iframe 视频更换为链接地址
+    iframes = soup.find_all('iframe', src=re.compile("bilibili"))
+    for x in iframes:
+        x['src'] = "http:" + x['src']
+        a_tag = soup.new_tag("a", href=x['src'])
+        a_tag.string = "vide play:" + x['src']
+        x.replace_with(a_tag)
 
     div_content = soup.find('div', class_='x-wiki-content')
     return new_title, div_content
@@ -66,7 +77,7 @@ def download_html(url, depth):
 
 def convert_pdf(template):
     html_file = "python-tutorial-pdf.html"
-    with open(html_file, mode="w", encoding="utf8") as code:
+    with open(html_file, mode="w") as code:
         code.write(str(template))
     pdfkit.from_file(html_file, 'python-tutorial-pdf.pdf')
 
