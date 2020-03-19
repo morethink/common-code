@@ -24,6 +24,12 @@ shell/git_branch.sh
 shell/open_merge_request.sh
 ```
 
+### 通过 wget 代理下载
+
+```shell
+shell/wget-for-proxy.sh
+```
+
 
 
 
